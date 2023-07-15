@@ -213,20 +213,45 @@ def blackjack_main():
     dealer = Dealer(10000)
     player = Player(500)
 
-    while True:
-        bet = player.bet()
-        winnings = blackjack_round(deck, dealer, player, bet)
-        player.funds += winnings
-        dealer.funds -= winnings
+    rounds_left = 100
 
-        if (winnings > 0):
-            print(f'Player won! Winnings = ${winnings:.2f}')
-        elif winnings == 0:
-            print('Player tied! Winnings = $0.00')
-        else:
-            print(f'Player lost! Losses = ${-winnings:.2f}')
-        print(f'Player funds = ${player.funds} | Dealer funds = ${dealer.funds}')
-            
+    while rounds_left > 0 and dealer.funds > 0 and player.funds > 0:
+
+        try:
+            print(f'Player funds = ${player.funds} | Dealer funds = ${dealer.funds}')
+            bet = player.bet()
+            winnings = blackjack_round(deck, dealer, player, bet)
+            player.funds += winnings
+            dealer.funds -= winnings
+
+            if (winnings > 0):
+                print(f'Player won! Winnings = ${winnings:.2f}')
+            elif winnings == 0:
+                print('Player tied! Winnings = $0.00')
+            else:
+                print(f'Player lost! Losses = ${-winnings:.2f}')
+
+            rounds_left -= 1
+
+        except EOFError:
+            break
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print(f"Unknown error: {e}")
+            break
+
+        
+    print(f'Player funds = ${player.funds} | Dealer funds = ${dealer.funds}')
+
+    if rounds_left == 0:
+        print('Enough rounds for you! Time to do something more productive!')
+    elif dealer.funds <= 0:
+        print('Looks like you cleared out the house... Congratulations!')
+    elif dealer.funds <= 0:
+        print('Looks like you''ve emptied your pockets. Better luck next time.')
+    else:
+        print(f'Had enough? Come back soon!')        
 
 if __name__ == "__main__":
     blackjack_main()

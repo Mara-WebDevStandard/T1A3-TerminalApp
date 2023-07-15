@@ -105,6 +105,29 @@ class Player:
             if act == Action.stand:
                 self.stood = True
             return act
+        
+    def double_down(self, pcards, dcards):
+        return read_yn("Double down")
+
+
+# initial implementation - just copies dealers strategy and never doubles down
+class CPUPlayer:
+    def __init__(self, funds):
+        self.funds = funds
+        self.init_funds = funds
+        self.stood = False
+
+    def bet(self):
+        return min(self.init_funds / 20, self.funds)
+
+    def choice(self, pcards, dcards):
+        if hand_value(pcards) >= 17:
+            self.stood = True
+            return Action.stand
+        return Action.hit
+           
+    def double_down(self, pcards, dcards):
+        return False
 
 
 class Dealer:
@@ -121,7 +144,7 @@ class Dealer:
 # returns winnings amount to player (negative for a loss)
 
 
-def blackjack_round(deck, dealer, player, bet):
+def blackjack_round(round, deck, dealer, player, bet):
 
     d_cards = [deck.pop(), deck.pop()]
     p_cards = [deck.pop(), deck.pop()]
@@ -131,25 +154,25 @@ def blackjack_round(deck, dealer, player, bet):
     push = d_bjack and p_bjack
 
     if d_bjack or p_bjack:
-        print(f'Dealer cards: {hand_to_str(d_cards)}')
-        print(f'Player cards: {hand_to_str(p_cards)}')
+        print(f'#{round}. Dealer cards: {hand_to_str(d_cards)}')
+        print(f'#{round}. Player cards: {hand_to_str(p_cards)}')
 
     if push:  # break even
-        print('Player and dealer got blackjack')
+        print(f'#{round}. Player and dealer got blackjack')
         return 0
     if p_bjack:  # 3:2 payout for blackjack
-        print('Player got blackjack!')
+        print(f'#{round}. Player got blackjack!')
         return bet * 1.5
     if d_bjack:
-        print('Dealer got blackjack')
+        print(f'#{round}. Dealer got blackjack')
         return -bet  # lose bet
 
     # special case for hidden card on first round
-    print(f'Dealer cards: [{d_cards[0].short_name()}][**]')
-    print(f'Player cards: {hand_to_str(p_cards)}')
+    print(f'#{round}. Dealer cards: [{d_cards[0].short_name()}][**]')
+    print(f'#{round}. Player cards: {hand_to_str(p_cards)}')
 
     # give player option to double down
-    if read_yn("Double down"):
+    if player.double_down(p_cards, d_cards):
         bet *= 2
         p_cards.append(deck.pop())
 
@@ -157,17 +180,17 @@ def blackjack_round(deck, dealer, player, bet):
             if dealer.choice(p_cards, d_cards) == Action.hit:
                 d_cards.append(deck.pop())
 
-        print(f'Dealer cards: {hand_to_str(d_cards)}')
-        print(f'Player cards: {hand_to_str(p_cards)}')
+        print(f'#{round}. Dealer cards: {hand_to_str(d_cards)}')
+        print(f'#{round}. Player cards: {hand_to_str(p_cards)}')
 
         p_val = hand_value(p_cards)
         d_val = hand_value(d_cards)
 
         if p_val > 21:  # player always loses if bust - even if dealer busts too
-            print('Player went bust!')
+            print('#{round}. Player went bust!')
             return -bet
         if d_val > 21:
-            print('Dealer went bust!')
+            print('#{round}. Dealer went bust!')
             return bet
         if p_val > d_val:
             return bet
@@ -182,26 +205,26 @@ def blackjack_round(deck, dealer, player, bet):
             if player.choice(p_cards, d_cards) == Action.hit:
                 p_cards.append(deck.pop())
                 if hand_value(p_cards) > 21:
-                    print(f'Player cards: {hand_to_str(p_cards)}')
-                    print('Player went bust!')
+                    print(f'#{round}. Player cards: {hand_to_str(p_cards)}')
+                    print('#{round}. Player went bust!')
                     return -bet
 
         if not dealer.stood:
             if dealer.choice(p_cards, d_cards) == Action.hit:
                 d_cards.append(deck.pop())
                 if hand_value(d_cards) > 21:
-                    print(f'Dealer cards: {hand_to_str(d_cards)}')
-                    print('Dealer went bust!')
+                    print(f'#{round}. Dealer cards: {hand_to_str(d_cards)}')
+                    print(f'#{round}. Dealer went bust!')
                     return bet
 
-        print(f'Dealer cards: {hand_to_str(d_cards)}')
-        print(f'Player cards: {hand_to_str(p_cards)}')
+        print(f'#{round}. Dealer cards: {hand_to_str(d_cards)}')
+        print(f'#{round}. Player cards: {hand_to_str(p_cards)}')
 
         if dealer.stood and player.stood:
             p_val = hand_value(p_cards)
             d_val = hand_value(d_cards)
 
-            print(f'Player score: {p_val} | Dealer score: {d_val}')
+            print(f'#{round}. Player score: {p_val} | Dealer score: {d_val}')
 
             if p_val > d_val:
                 return bet
@@ -211,41 +234,46 @@ def blackjack_round(deck, dealer, player, bet):
                 return 0
 
 
-def blackjack_main(max_rounds, dealer_funds, player_funds):
+def blackjack_main(simulate, max_rounds, dealer_funds, player_funds):
 
     deck = make_decks(5)
     shuffle(deck)
 
     dealer = Dealer(dealer_funds)
-    player = Player(player_funds)
 
-    rounds_left = max_rounds
+    if simulate:
+        player = CPUPlayer(player_funds)
+    else:
+        player = Player(player_funds)
 
-    while rounds_left > 0 and dealer.funds > 0 and player.funds > 0:
+    cur_round = 1
+
+    while cur_round <= max_rounds and dealer.funds > 0 and player.funds > 0:
 
         try:
             print(
-                f'Player funds = ${player.funds} | Dealer funds = ${dealer.funds}')
+                f'#{cur_round}. Player funds = ${player.funds:.2f} | Dealer funds = ${dealer.funds:.2f}')
             bet = player.bet()
-            winnings = blackjack_round(deck, dealer, player, bet)
+            winnings = blackjack_round(cur_round, deck, dealer, player, bet)
             player.funds += winnings
             dealer.funds -= winnings
+            player.stood = False
+            dealer.stood = False
 
             if winnings > 0:
-                print(f'Player won! Winnings = ${winnings:.2f}')
+                print(f'#{cur_round}. Player won! Winnings = ${winnings:.2f}')
             elif winnings == 0:
-                print('Player tied! Winnings = $0.00')
+                print(f'#{cur_round}. Player tied! Winnings = $0.00')
             else:
-                print(f'Player lost! Losses = ${-winnings:.2f}')
+                print(f'#{cur_round}. Player lost! Losses = ${-winnings:.2f}')
 
-            rounds_left -= 1
+            cur_round += 1
 
             # safe heuristic to avoid card exhaustion mid round
             if len(deck) < 20:
                 addon = make_decks(1)
                 shuffle(addon)
-                addon.append(deck)
-                deck = addon
+                deck = addon + deck
 
         except EOFError:
             break
@@ -255,13 +283,15 @@ def blackjack_main(max_rounds, dealer_funds, player_funds):
             print(f"Unknown error: {e}")
             break
 
-    print(f'Player funds = ${player.funds} | Dealer funds = ${dealer.funds}')
+    print(f'Player funds = ${player.funds:.2f} | Dealer funds = ${dealer.funds:.2f}')
 
-    if rounds_left == 0:
+    print(f'Rounds played: {max_rounds}')
+
+    if cur_round == max_rounds + 1:
         print('Enough rounds for you! Time to do something more productive!')
     elif dealer.funds <= 0:
         print('Looks like you cleared out the house... Congratulations!')
-    elif dealer.funds <= 0:
+    elif player.funds <= 0:
         print('Looks like you\'ve emptied your pockets. Better luck next time.')
     else:
         print('Had enough? Come back soon!')
@@ -278,7 +308,8 @@ if __name__ == "__main__":
                         default=10000, help="Initial amount of dealer funds")
     parser.add_argument('-p', '--player-funds', type=float,
                         default=500, help="Initial amount of player funds")
+    parser.add_argument('-s', '--simulation', action='store_true', help="Watch the computer play.")
 
     args = parser.parse_args()
 
-    blackjack_main(args.rounds, args.dealer_funds, args.player_funds)
+    blackjack_main(args.simulation, args.rounds, args.dealer_funds, args.player_funds)

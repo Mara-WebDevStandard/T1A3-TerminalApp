@@ -206,10 +206,9 @@ def blackjack_round(deck, dealer, player, bet):
                 
 
 
-def blackjack_main(max_rounds, deck_size, dealer_funds, player_funds):
+def blackjack_main(max_rounds, dealer_funds, player_funds):
 
-    #TODO - what happens when cards run out mid round?
-    deck = make_decks(deck_size)
+    deck = make_decks(5)
     shuffle(deck)
 
     dealer = Dealer(dealer_funds)
@@ -234,6 +233,13 @@ def blackjack_main(max_rounds, deck_size, dealer_funds, player_funds):
                 print(f'Player lost! Losses = ${-winnings:.2f}')
 
             rounds_left -= 1
+
+            #safe heuristic to avoid card exhaustion mid round
+            if len(deck) < 20:
+                addon = make_decks(1)
+                shuffle(addon)
+                addon.append(deck)
+                deck = addon
 
         except EOFError:
             break
@@ -262,8 +268,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--rounds', type=int, default=100, help="Maximum number of rounds before game ends")
     parser.add_argument('-d', '--dealer-funds', type=float, default=10000, help="Initial amount of dealer funds")
     parser.add_argument('-p', '--player-funds', type=float, default=500, help="Initial amount of player funds")
-    parser.add_argument('-D', '--deck-size', type=int, default=5, help="Number of standard 52 card decks in use")
 
     args = parser.parse_args()
 
-    blackjack_main(args.rounds, args.deck_size, args.dealer_funds, args.player_funds)
+    blackjack_main(args.rounds, args.dealer_funds, args.player_funds)

@@ -10,7 +10,7 @@ def read_opt(prompt, options):
             print(f'"{key}" is not a valid option.')
 
 def read_yn(prompt):
-    return read_opt(prompt, {"yes": True, "no": False})
+    return read_opt(prompt, {"y": True, "n": False})
 
 def read_num(prompt):
     while True:

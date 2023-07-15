@@ -75,7 +75,7 @@ def hand_value(cards):
 def make_decks(count):
     cards = []
 
-    for i in range(count):
+    for _ in range(count):
         for s in Suits:
             for f in Faces:
                 cards.append(Card(s, f))
@@ -116,8 +116,7 @@ class Dealer:
         if hand_value(dcards) >= 17:
             self.stood = True
             return Action.stand
-        else:
-            return Action.hit
+        return Action.hit
 
 # returns winnings amount to player (negative for a loss)
 
@@ -138,10 +137,10 @@ def blackjack_round(deck, dealer, player, bet):
     if push:  # break even
         print('Player and dealer got blackjack')
         return 0
-    elif p_bjack:  # 3:2 payout for blackjack
+    if p_bjack:  # 3:2 payout for blackjack
         print('Player got blackjack!')
         return bet * 1.5
-    elif d_bjack:
+    if d_bjack:
         print('Dealer got blackjack')
         return -bet  # lose bet
 
@@ -150,7 +149,7 @@ def blackjack_round(deck, dealer, player, bet):
     print(f'Player cards: {hand_to_str(p_cards)}')
 
     # give player option to double down
-    if (read_yn("Double down")):
+    if read_yn("Double down"):
         bet *= 2
         p_cards.append(deck.pop())
 
@@ -167,15 +166,15 @@ def blackjack_round(deck, dealer, player, bet):
         if p_val > 21:  # player always loses if bust - even if dealer busts too
             print('Player went bust!')
             return -bet
-        elif d_val > 21:
+        if d_val > 21:
             print('Dealer went bust!')
             return bet
-        elif p_val > d_val:
+        if p_val > d_val:
             return bet
-        elif p_val < d_val:
+        if p_val < d_val:
             return -bet
-        else:  # p_val == d_val
-            return 0
+        # p_val == d_val
+        return 0
 
     while True:
 
@@ -232,7 +231,7 @@ def blackjack_main(max_rounds, dealer_funds, player_funds):
             player.funds += winnings
             dealer.funds -= winnings
 
-            if (winnings > 0):
+            if winnings > 0:
                 print(f'Player won! Winnings = ${winnings:.2f}')
             elif winnings == 0:
                 print('Player tied! Winnings = $0.00')
@@ -263,9 +262,9 @@ def blackjack_main(max_rounds, dealer_funds, player_funds):
     elif dealer.funds <= 0:
         print('Looks like you cleared out the house... Congratulations!')
     elif dealer.funds <= 0:
-        print('Looks like you''ve emptied your pockets. Better luck next time.')
+        print('Looks like you\'ve emptied your pockets. Better luck next time.')
     else:
-        print(f'Had enough? Come back soon!')
+        print('Had enough? Come back soon!')
 
 
 if __name__ == "__main__":

@@ -47,11 +47,14 @@ class Card:
 
     def short_name(self):
         suit = self.suit.name[0].upper()
-        val = self.face.value if self.face.value <= 10 else self.face.name[0].upper()
+        val = self.face.value if self.face.value <= 10 else self.face.name[0].upper(
+        )
         return f'{val}{suit}'
-    
+
+
 def hand_to_str(cards):
     return "".join([f'[{c.short_name()}]' for c in cards])
+
 
 def hand_value(cards):
     value = 0
@@ -68,6 +71,7 @@ def hand_value(cards):
 
     return value
 
+
 def make_decks(count):
     cards = []
 
@@ -77,6 +81,7 @@ def make_decks(count):
                 cards.append(Card(s, f))
 
     return cards
+
 
 class Player:
     def __init__(self, funds):
@@ -92,7 +97,7 @@ class Player:
             elif bet > self.funds:
                 print("Not enough funds!")
             else:
-                return bet  
+                return bet
 
     def choice(self, pcards, dcards):
         while True:
@@ -100,7 +105,8 @@ class Player:
             if act == Action.stand:
                 self.stood = True
             return act
-        
+
+
 class Dealer:
     def __init__(self, funds):
         self.funds = funds
@@ -114,6 +120,8 @@ class Dealer:
             return Action.hit
 
 # returns winnings amount to player (negative for a loss)
+
+
 def blackjack_round(deck, dealer, player, bet):
 
     d_cards = [deck.pop(), deck.pop()]
@@ -125,23 +133,23 @@ def blackjack_round(deck, dealer, player, bet):
 
     if d_bjack or p_bjack:
         print(f'Dealer cards: {hand_to_str(d_cards)}')
-        print(f'Player cards: {hand_to_str(p_cards)}')  
+        print(f'Player cards: {hand_to_str(p_cards)}')
 
-    if push: # break even
-       print('Player and dealer got blackjack')
-       return 0
-    elif p_bjack: # 3:2 payout for blackjack
+    if push:  # break even
+        print('Player and dealer got blackjack')
+        return 0
+    elif p_bjack:  # 3:2 payout for blackjack
         print('Player got blackjack!')
         return bet * 1.5
     elif d_bjack:
         print('Dealer got blackjack')
-        return -bet # lose bet
-        
-    #special case for hidden card on first round
+        return -bet  # lose bet
+
+    # special case for hidden card on first round
     print(f'Dealer cards: [{d_cards[0].short_name()}][**]')
     print(f'Player cards: {hand_to_str(p_cards)}')
 
-    #give player option to double down
+    # give player option to double down
     if (read_yn("Double down")):
         bet *= 2
         p_cards.append(deck.pop())
@@ -149,14 +157,14 @@ def blackjack_round(deck, dealer, player, bet):
         while not dealer.stood:
             if dealer.choice(p_cards, d_cards) == Action.hit:
                 d_cards.append(deck.pop())
-        
+
         print(f'Dealer cards: {hand_to_str(d_cards)}')
         print(f'Player cards: {hand_to_str(p_cards)}')
 
         p_val = hand_value(p_cards)
         d_val = hand_value(d_cards)
 
-        if p_val > 21: # player always loses if bust - even if dealer busts too
+        if p_val > 21:  # player always loses if bust - even if dealer busts too
             print('Player went bust!')
             return -bet
         elif d_val > 21:
@@ -166,7 +174,7 @@ def blackjack_round(deck, dealer, player, bet):
             return bet
         elif p_val < d_val:
             return -bet
-        else: # p_val == d_val
+        else:  # p_val == d_val
             return 0
 
     while True:
@@ -178,7 +186,6 @@ def blackjack_round(deck, dealer, player, bet):
                     print(f'Player cards: {hand_to_str(p_cards)}')
                     print('Player went bust!')
                     return -bet
-        
 
         if not dealer.stood:
             if dealer.choice(p_cards, d_cards) == Action.hit:
@@ -201,9 +208,8 @@ def blackjack_round(deck, dealer, player, bet):
                 return bet
             elif p_val < d_val:
                 return -bet
-            else: # p_val == d_val
+            else:  # p_val == d_val
                 return 0
-                
 
 
 def blackjack_main(max_rounds, dealer_funds, player_funds):
@@ -219,7 +225,8 @@ def blackjack_main(max_rounds, dealer_funds, player_funds):
     while rounds_left > 0 and dealer.funds > 0 and player.funds > 0:
 
         try:
-            print(f'Player funds = ${player.funds} | Dealer funds = ${dealer.funds}')
+            print(
+                f'Player funds = ${player.funds} | Dealer funds = ${dealer.funds}')
             bet = player.bet()
             winnings = blackjack_round(deck, dealer, player, bet)
             player.funds += winnings
@@ -234,7 +241,7 @@ def blackjack_main(max_rounds, dealer_funds, player_funds):
 
             rounds_left -= 1
 
-            #safe heuristic to avoid card exhaustion mid round
+            # safe heuristic to avoid card exhaustion mid round
             if len(deck) < 20:
                 addon = make_decks(1)
                 shuffle(addon)
@@ -249,7 +256,6 @@ def blackjack_main(max_rounds, dealer_funds, player_funds):
             print(f"Unknown error: {e}")
             break
 
-        
     print(f'Player funds = ${player.funds} | Dealer funds = ${dealer.funds}')
 
     if rounds_left == 0:
@@ -259,15 +265,20 @@ def blackjack_main(max_rounds, dealer_funds, player_funds):
     elif dealer.funds <= 0:
         print('Looks like you''ve emptied your pockets. Better luck next time.')
     else:
-        print(f'Had enough? Come back soon!')        
+        print(f'Had enough? Come back soon!')
+
 
 if __name__ == "__main__":
 
-    parser = ArgumentParser(prog='BlackJack', description='The timeless game of blackjack brought to the terminal')
+    parser = ArgumentParser(
+        prog='BlackJack', description='The timeless game of blackjack brought to the terminal')
 
-    parser.add_argument('-r', '--rounds', type=int, default=100, help="Maximum number of rounds before game ends")
-    parser.add_argument('-d', '--dealer-funds', type=float, default=10000, help="Initial amount of dealer funds")
-    parser.add_argument('-p', '--player-funds', type=float, default=500, help="Initial amount of player funds")
+    parser.add_argument('-r', '--rounds', type=int, default=100,
+                        help="Maximum number of rounds before game ends")
+    parser.add_argument('-d', '--dealer-funds', type=float,
+                        default=10000, help="Initial amount of dealer funds")
+    parser.add_argument('-p', '--player-funds', type=float,
+                        default=500, help="Initial amount of player funds")
 
     args = parser.parse_args()
 

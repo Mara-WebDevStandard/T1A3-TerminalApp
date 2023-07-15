@@ -3,6 +3,7 @@
 from enum import Enum
 from random import shuffle
 from utilities import *
+from argparse import ArgumentParser
 
 
 class Suits(Enum):
@@ -205,15 +206,16 @@ def blackjack_round(deck, dealer, player, bet):
                 
 
 
-def blackjack_main():
+def blackjack_main(max_rounds, deck_size, dealer_funds, player_funds):
 
-    deck = make_decks(5)
+    #TODO - what happens when cards run out mid round?
+    deck = make_decks(deck_size)
     shuffle(deck)
 
-    dealer = Dealer(10000)
-    player = Player(500)
+    dealer = Dealer(dealer_funds)
+    player = Player(player_funds)
 
-    rounds_left = 100
+    rounds_left = max_rounds
 
     while rounds_left > 0 and dealer.funds > 0 and player.funds > 0:
 
@@ -254,4 +256,14 @@ def blackjack_main():
         print(f'Had enough? Come back soon!')        
 
 if __name__ == "__main__":
-    blackjack_main()
+
+    parser = ArgumentParser(prog='BlackJack', description='The timeless game of blackjack brought to the terminal')
+
+    parser.add_argument('-r', '--rounds', type=int, default=100, help="Maximum number of rounds before game ends")
+    parser.add_argument('-d', '--dealer-funds', type=float, default=10000, help="Initial amount of dealer funds")
+    parser.add_argument('-p', '--player-funds', type=float, default=500, help="Initial amount of player funds")
+    parser.add_argument('-D', '--deck-size', type=int, default=5, help="Number of standard 52 card decks in use")
+
+    args = parser.parse_args()
+
+    blackjack_main(args.rounds, args.deck_size, args.dealer_funds, args.player_funds)

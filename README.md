@@ -6,6 +6,8 @@
 
 The application is a a game of blackjack in the terminal that can either be played interactively by a user or the user can instead watch a computer player play against the dealer (results will be output to the terminal)
 
+**Link to presentation:** https://drive.google.com/file/d/1m_GasKoNwEb9AF26mjrjRIsgP3c_-8Mq/view?usp=sharing
+
 ## Usage Guide
 
 ### Dependencies System/Requirements

@@ -105,12 +105,11 @@ class Player:
             if act == Action.stand:
                 self.stood = True
             return act
-        
+
     def double_down(self, pcards, dcards):
         return read_yn("Double down")
 
 
-# initial implementation - just copies dealers strategy and never doubles down
 class CPUPlayer:
     def __init__(self, funds):
         self.funds = funds
@@ -125,7 +124,7 @@ class CPUPlayer:
             self.stood = True
             return Action.stand
         return Action.hit
-           
+
     def double_down(self, pcards, dcards):
         return False
 
@@ -140,9 +139,10 @@ class Dealer:
             self.stood = True
             return Action.stand
         return Action.hit
-    
+
+
 class Round:
-    def __init__(self, round, deck, dealer, player, bet, silent = False):
+    def __init__(self, round, deck, dealer, player, bet, silent=False):
         self.round = round
         self.deck = deck
         self.dealer = dealer
@@ -179,7 +179,6 @@ class Round:
             self.print("Player went bust!")
         elif hand_value(self.dcards) > 21:
             self.print("Dealer went bust!")
-            
 
         if self.winnings > 0:
             self.print(f'Player won! Winnings = ${self.winnings:.2f}')
@@ -188,7 +187,8 @@ class Round:
         else:
             self.print(f'Player lost! Losses = ${-self.winnings:.2f}')
 
-        self.print(f'Player funds = ${self.player.funds:.2f} | Dealer funds = ${self.dealer.funds:.2f}')
+        self.print(
+            f'Player funds = ${self.player.funds:.2f} | Dealer funds = ${self.dealer.funds:.2f}')
 
     def run_game(self):
         self.dcards = [self.deck.pop(), self.deck.pop()]
@@ -223,7 +223,7 @@ class Round:
 
             self.print(f'Player cards: {hand_to_str(self.pcards)}')
 
-            if hand_value(self.pcards) > 21: # player bust
+            if hand_value(self.pcards) > 21:  # player bust
                 return -self.bet
 
         while True:
@@ -242,7 +242,6 @@ class Round:
                     if hand_value(self.dcards) > 21:
                         return self.bet
 
-
             if self.dealer.stood and self.player.stood:
                 p_val = hand_value(self.pcards)
                 d_val = hand_value(self.dcards)
@@ -255,6 +254,7 @@ class Round:
                     return -self.bet
                 else:  # p_val == d_val
                     return 0
+
 
 def blackjack_main(simulate, max_rounds, dealer_funds, player_funds, summarize):
 
@@ -276,7 +276,8 @@ def blackjack_main(simulate, max_rounds, dealer_funds, player_funds, summarize):
 
         try:
             bet = player.bet()
-            round = Round(cur_round + 1, deck, dealer, player, bet, silent=simulate)
+            round = Round(cur_round + 1, deck, dealer,
+                          player, bet, silent=simulate)
             round.play()
             cur_round += 1
             history.append(round)
@@ -301,7 +302,8 @@ def blackjack_main(simulate, max_rounds, dealer_funds, player_funds, summarize):
         for h in history:
             print(h.summarize())
 
-    print(f'Player funds = ${player.funds:.2f} | Dealer funds = ${dealer.funds:.2f}')
+    print(
+        f'Player funds = ${player.funds:.2f} | Dealer funds = ${dealer.funds:.2f}')
 
     print(f'Rounds played: {cur_round}')
 
@@ -315,7 +317,6 @@ def blackjack_main(simulate, max_rounds, dealer_funds, player_funds, summarize):
         print('Had enough? Come back soon!')
 
 
-
 if __name__ == "__main__":
 
     parser = ArgumentParser(
@@ -327,10 +328,12 @@ if __name__ == "__main__":
                         default=10000, help="Initial amount of dealer funds")
     parser.add_argument('-p', '--player-funds', type=float,
                         default=500, help="Initial amount of player funds")
-    parser.add_argument('--simulation', action='store_true', help="Watch the computer play.")
-    parser.add_argument('--summarize', action='store_true', help="Watch the computer play.")
-
+    parser.add_argument('--simulation', action='store_true',
+                        help="Watch the computer play.")
+    parser.add_argument('--summarize', action='store_true',
+                        help="Watch the computer play.")
 
     args = parser.parse_args()
 
-    blackjack_main(args.simulation, args.rounds, args.dealer_funds, args.player_funds, args.summarize)
+    blackjack_main(args.simulation, args.rounds,
+                   args.dealer_funds, args.player_funds, args.summarize)

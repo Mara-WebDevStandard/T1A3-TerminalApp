@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from blackjack import *
 import pytest
 

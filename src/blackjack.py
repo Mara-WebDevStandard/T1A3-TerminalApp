@@ -153,9 +153,15 @@ class Round:
         self.silent = silent
         self.winnings = 0
 
-    def force_print(self, msg):
-        print(f'#{self.round}. {msg}')
- 
+    def result_str(self):
+        if self.winnings < 0:
+            return "Lost"
+        elif self.winnings == 0:
+            return "Tied"
+        return "Won"
+
+    def summarize(self):
+        return f'#{self.round}. Dealer cards: {hand_to_str(self.dcards)} ({hand_value(self.dcards)}) | Player cards: {hand_to_str(self.pcards)} ({hand_value(self.pcards)}) | {self.result_str()} ${abs(self.winnings):.2f}'
 
     def print(self, msg):
         if not self.silent:
@@ -170,13 +176,13 @@ class Round:
         self.dealer.stood = False
 
         if self.winnings > 0:
-            self.force_print(f'Player won! Winnings = ${self.winnings:.2f}')
+            self.print(f'Player won! Winnings = ${self.winnings:.2f}')
         elif self.winnings == 0:
-            self.force_print(f'Player tied! Winnings = $0.00')
+            self.print(f'Player tied! Winnings = $0.00')
         else:
-            self.force_print(f'Player lost! Losses = ${-self.winnings:.2f}')
+            self.print(f'Player lost! Losses = ${-self.winnings:.2f}')
 
-
+        self.print(f'Player funds = ${self.player.funds:.2f} | Dealer funds = ${self.dealer.funds:.2f}')
 
 
     def run_game(self):
@@ -266,7 +272,7 @@ class Round:
                 else:  # p_val == d_val
                     return 0
 
-def blackjack_main(simulate, max_rounds, dealer_funds, player_funds, quiet):
+def blackjack_main(simulate, max_rounds, dealer_funds, player_funds):
 
     deck = make_decks(5)
     shuffle(deck)
@@ -278,16 +284,18 @@ def blackjack_main(simulate, max_rounds, dealer_funds, player_funds, quiet):
     else:
         player = Player(player_funds)
 
+    history = []
+
     cur_round = 0
 
     while cur_round < max_rounds and dealer.funds > 0 and player.funds > 0:
 
         try:
-            print(f'Player funds = ${player.funds:.2f} | Dealer funds = ${dealer.funds:.2f}')
             bet = player.bet()
-            round = Round(cur_round + 1, deck, dealer, player, bet, silent=quiet)
+            round = Round(cur_round + 1, deck, dealer, player, bet, silent=simulate)
             round.play()
             cur_round += 1
+            history.append(round)
 
             # safe heuristic to avoid card exhaustion mid round
             if len(deck) < 20:
@@ -303,6 +311,10 @@ def blackjack_main(simulate, max_rounds, dealer_funds, player_funds, quiet):
             print(f"Unknown error: {e}")
             break
 
+    if simulate:
+        for h in history:
+            print(h.summarize())
+
     print(f'Player funds = ${player.funds:.2f} | Dealer funds = ${dealer.funds:.2f}')
 
     print(f'Rounds played: {cur_round}')
@@ -317,6 +329,7 @@ def blackjack_main(simulate, max_rounds, dealer_funds, player_funds, quiet):
         print('Had enough? Come back soon!')
 
 
+
 if __name__ == "__main__":
 
     parser = ArgumentParser(
@@ -328,10 +341,8 @@ if __name__ == "__main__":
                         default=10000, help="Initial amount of dealer funds")
     parser.add_argument('-p', '--player-funds', type=float,
                         default=500, help="Initial amount of player funds")
-    parser.add_argument('-s', '--simulation', action='store_true', help="Watch the computer play.")
-    parser.add_argument('--quiet', action='store_true', help="Suppress output of each turn.")
-
+    parser.add_argument('--simulation', action='store_true', help="Watch the computer play.")
 
     args = parser.parse_args()
 
-    blackjack_main(args.simulation, args.rounds, args.dealer_funds, args.player_funds, args.quiet)
+    blackjack_main(args.simulation, args.rounds, args.dealer_funds, args.player_funds)

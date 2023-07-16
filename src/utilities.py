@@ -1,5 +1,5 @@
 def read_opt(prompt, options):
-    
+
     opts = "/".join(options.keys())
 
     while True:
@@ -9,8 +9,10 @@ def read_opt(prompt, options):
         else:
             print(f'"{key}" is not a valid option.')
 
+
 def read_yn(prompt):
     return read_opt(prompt, {"y": True, "n": False})
+
 
 def read_num(prompt):
     while True:
@@ -19,6 +21,7 @@ def read_num(prompt):
             return float(text)
         except ValueError:
             print(f'"{text}" is not a valid number.')
+
 
 def read_enum(prompt, enum):
     opts = "/".join([e.name for e in enum])
@@ -29,4 +32,3 @@ def read_enum(prompt, enum):
             return enum[name.casefold()]
         except KeyError:
             print(f'"{name}" is not a valid option.')
-        
